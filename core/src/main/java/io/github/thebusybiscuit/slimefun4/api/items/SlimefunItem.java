@@ -1,5 +1,8 @@
 package io.github.thebusybiscuit.slimefun4.api.items;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+
 import javax.annotation.Nullable;
 
 import org.bukkit.inventory.ItemStack;
@@ -20,6 +23,8 @@ import org.bukkit.inventory.ItemStack;
  * {@link #isItem(ItemStack)}). Extend it only when a real plugin needs more - do NOT mirror the whole API.
  */
 public class SlimefunItem {
+
+    private static final Map<io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem, SlimefunItem> CACHE = new WeakHashMap<>();
 
     private final io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem delegate;
 
@@ -43,7 +48,13 @@ public class SlimefunItem {
 
     @Nullable
     private static SlimefunItem wrap(@Nullable io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem item) {
-        return item == null ? null : new SlimefunItem(item);
+        if (item == null) {
+            return null;
+        }
+
+        synchronized (CACHE) {
+            return CACHE.computeIfAbsent(item, SlimefunItem::new);
+        }
     }
 
     public String getId() {
@@ -56,5 +67,23 @@ public class SlimefunItem {
 
     public boolean isItem(@Nullable ItemStack item) {
         return delegate.isItem(item);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (!(obj instanceof SlimefunItem)) {
+            return false;
+        }
+
+        return delegate.equals(((SlimefunItem) obj).delegate);
+    }
+
+    @Override
+    public int hashCode() {
+        return delegate.hashCode();
     }
 }

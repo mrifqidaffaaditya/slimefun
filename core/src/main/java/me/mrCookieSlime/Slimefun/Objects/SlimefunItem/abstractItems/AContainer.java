@@ -78,6 +78,7 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
                 if (inv != null) {
                     inv.dropItems(b.getLocation(), getInputSlots());
                     inv.dropItems(b.getLocation(), getOutputSlots());
+                    inv.delete(b.getLocation());
                 }
 
                 processor.endOperation(b);
@@ -307,7 +308,7 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
     }
 
     public void registerRecipe(MachineRecipe recipe) {
-        recipe.setTicks(recipe.getTicks() / getSpeed());
+        recipe.setTicks(Math.max(1, recipe.getTicks() / getSpeed()));
         recipes.add(recipe);
     }
 
@@ -362,10 +363,19 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
                     processor.updateProgressBar(inv, 22, currentOperation);
                     currentOperation.addProgress(1);
                 } else {
+                    if (!InvUtils.fitAll(inv.toInventory(), currentOperation.getResults(), getOutputSlots())) {
+                        // Output can't fit right now - hold the finished operation until space frees up
+                        return;
+                    }
+
                     inv.replaceExistingItem(22, CustomItemStack.create(XMaterial.BLACK_STAINED_GLASS_PANE.parseMaterial(), " "));
 
                     for (ItemStack output : currentOperation.getResults()) {
-                        inv.pushItem(output.clone(), getOutputSlots());
+                        ItemStack rest = inv.pushItem(output.clone(), getOutputSlots());
+
+                        if (rest != null) {
+                            b.getWorld().dropItemNaturally(b.getLocation(), rest);
+                        }
                     }
 
                     processor.endOperation(b);

@@ -506,7 +506,15 @@ public class ItemTranslationService {
                 name = ChatColor.translateAlternateColorCodes('&', en.name);
             } else {
                 ItemMeta englishNameMeta = english != null ? english.getItemMeta() : item.getItem().getItemMeta();
-                name = (englishNameMeta != null && englishNameMeta.hasDisplayName()) ? englishNameMeta.getDisplayName() : id;
+                if (englishNameMeta != null && englishNameMeta.hasDisplayName()) {
+                    name = englishNameMeta.getDisplayName();
+                } else {
+                    // Last resort: the SlimefunItem's own baked display name (never the raw vanilla
+                    // material name). Prevents e.g. BLISTERING_INGOT rendering as "Gold Ingot" when the
+                    // english baseline is not yet captured, which broke item stacking/merging.
+                    String baked = item.getItemName();
+                    name = (baked != null && !baked.isEmpty()) ? baked : id;
+                }
             }
         }
 

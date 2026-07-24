@@ -451,6 +451,11 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
         enchantTranslationService.loadBundled();
         menuTranslationService.loadBundled();
 
+        // Machine menu presets captured their window title from the item's display name at construction,
+        // which ran BEFORE canonicalizeToId() baked the name in - so every machine's inventory title showed
+        // the raw/vanilla name. Refresh each preset's title now that the names are baked.
+        refreshMenuPresetTitles();
+
         // Pre-warm the balance caches (heavy per-item recipe-tree effort walks) once, after all addons have
         // registered their items. Runs ASYNC (off the main thread): doing it on the main thread froze the
         // server for a couple of seconds ~10s after boot - which is exactly when an admin first opens the
@@ -913,6 +918,40 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
             SlimefunItemSetup.setup(this);
         } catch (Exception | LinkageError x) {
             getLogger().log(Level.SEVERE, x, () -> "An Error occurred while initializing SlimefunItems for Slimefun " + getVersion());
+        }
+    }
+
+    /**
+     * Refreshes every machine menu preset's window title from its item's now-baked display name.
+     * <p>
+     * A {@link me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset} captures its title in the item
+     * constructor, which runs before {@code ItemTranslationService#canonicalizeToId()} bakes the display
+     * name - so machine inventory titles showed the raw/vanilla name. Called once, right after baking.
+     */
+    private void refreshMenuPresetTitles() {
+        try {
+            for (Map.Entry<String, me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset> entry : registry.getMenuPresets().entrySet()) {
+                me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset preset = entry.getValue();
+                io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem item = io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem.getById(entry.getKey());
+
+                if (item == null) {
+                    continue;
+                }
+
+                try {
+                    // AContainer machines can override the title via getInventoryTitle(); everything else
+                    // falls back to the (now-baked) item display name.
+                    String title = item instanceof me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer
+                        ? ((me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer) item).getInventoryTitle()
+                        : item.getItemName();
+
+                    preset.updateInventoryTitle(title);
+                } catch (Exception | LinkageError ignored) {
+                    // A single broken item must never abort the whole refresh pass.
+                }
+            }
+        } catch (Exception | LinkageError x) {
+            getLogger().log(Level.SEVERE, x, () -> "An Error occurred while refreshing machine menu titles for Slimefun " + getVersion());
         }
     }
 

@@ -25,7 +25,7 @@ import me.mrCookieSlime.Slimefun.api.item_transport.ItemTransportFlow;
 public abstract class BlockMenuPreset extends ChestMenu {
 
     private final Set<Integer> occupiedSlots = new HashSet<>();
-    private final String inventoryTitle;
+    private String inventoryTitle;
     private final String id;
 
     // -1 means "automatically update according to the contents"
@@ -185,6 +185,22 @@ public abstract class BlockMenuPreset extends ChestMenu {
      */
     public String getTitle() {
         return inventoryTitle;
+    }
+
+    /**
+     * Updates this preset's inventory title. Machine presets capture their title from the item's display
+     * name at construction, which happens BEFORE the translation service bakes the item's name - so the
+     * window title showed the raw/vanilla name. This lets that title be refreshed once names are baked.
+     *
+     * @param title The new (raw, '&'-coloured) title
+     */
+    public void updateInventoryTitle(String title) {
+        if (title == null || title.equals(this.inventoryTitle)) {
+            return;
+        }
+
+        this.inventoryTitle = title;
+        setTitle(title);
     }
 
     /**

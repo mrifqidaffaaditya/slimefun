@@ -49,6 +49,17 @@ public final class EnchantDisplay {
      */
     @Nonnull
     public static List<String> lines(@Nonnull SlimefunItem item, @Nullable String languageId) {
+        return lines(item, languageId, null);
+    }
+
+    /**
+     * Renders the enchantment lore lines. When {@code actualEnchantments} is non-null it is used verbatim
+     * (the enchantments of the concrete {@link ItemStack} being rendered) instead of the item template's -
+     * so a tool that was disenchanted no longer shows lingering enchant text even though the template it
+     * derives from ships with enchantments. When null, falls back to the template's enchantments.
+     */
+    @Nonnull
+    public static List<String> lines(@Nonnull SlimefunItem item, @Nullable String languageId, @Nullable Map<Enchantment, Integer> actualEnchantments) {
         if (!canReposition()) {
             return Collections.emptyList();
         }
@@ -62,7 +73,7 @@ public final class EnchantDisplay {
         Map<Enchantment, Integer> enchantments;
 
         try {
-            enchantments = item.getItem().getEnchantments();
+            enchantments = actualEnchantments != null ? actualEnchantments : item.getItem().getEnchantments();
         } catch (Exception | LinkageError e) {
             return Collections.emptyList();
         }

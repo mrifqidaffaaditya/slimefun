@@ -5,7 +5,6 @@ import io.github.thebusybiscuit.slimefun5.utils.compatibility.KeyedCompat;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -24,7 +23,6 @@ import io.github.thebusybiscuit.slimefun5.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun5.api.items.SlimefunItemStack;
 import io.github.thebusybiscuit.slimefun5.api.recipes.RecipeType;
-import io.github.thebusybiscuit.slimefun5.implementation.Slimefun;
 
 
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
@@ -112,7 +110,7 @@ public class AutoDisenchanter extends AbstractEnchantmentMachine {
             ItemStack enchantedBook = new ItemStack(Material.ENCHANTED_BOOK);
             transferEnchantments(disenchantedItem, enchantedBook, enchantments);
 
-            MachineRecipe recipe = new MachineRecipe(90 * enchantments.size() / this.getSpeed(), new ItemStack[] { book, item }, new ItemStack[] { disenchantedItem, enchantedBook });
+            MachineRecipe recipe = new MachineRecipe(Math.max(1, 90 * enchantments.size() / this.getSpeed()), new ItemStack[] { book, item }, new ItemStack[] { disenchantedItem, enchantedBook });
 
             if (!InvUtils.fitAll(menu.toInventory(), recipe.getOutput(), getOutputSlots())) {
                 return null;
@@ -140,20 +138,34 @@ public class AutoDisenchanter extends AbstractEnchantmentMachine {
 
         for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
             Enchantment enchantmentToTransfer = entry.getKey();
-            boolean wasEnchantmentRemoved = itemMeta.removeEnchant(enchantmentToTransfer);
-            boolean stillHasEnchantment = itemMeta.getEnchants().containsKey(enchantmentToTransfer);
 
-            // Prevent future enchantment duplication (#3837)
-            if (wasEnchantmentRemoved && !stillHasEnchantment) {
-                meta.addStoredEnchant(enchantmentToTransfer, entry.getValue(), true);
-            } else {
-                // Get Enchantment Name
-                Slimefun.logger().log(Level.SEVERE, "AutoDisenchanter has failed to remove enchantment \"{0}\"", KeyedCompat.key(enchantmentToTransfer));
-            }
+            // Move the enchantment onto the book.
+            meta.addStoredEnchant(enchantmentToTransfer, entry.getValue(), true);
+
+            // Remove it from the tool's meta.
+            itemMeta.removeEnchant(enchantmentToTransfer);
         }
 
+        // Apply the stripped meta and the book's stored enchants.
         item.setItemMeta(itemMeta);
         book.setItemMeta(meta);
+
+        // Belt-and-suspenders: on modern Minecraft (data components, 1.20.5+/26.x) removing an enchantment
+        // by an Enchantment key captured from the ORIGINAL item can miss because the clone exposes a
+        // different Enchantment instance, leaving the enchantment (and its client tooltip text) on the
+        // tool - the "enchant text reappears in the inventory" bug. Re-check against the LIVE ItemStack and
+        // remove any transferred enchantment that lingers, matched by its key rather than instance identity.
+        // (Only the enchantments we actually transferred - a level-limited one that stayed behind must remain.)
+        java.util.Set<String> transferredKeys = new java.util.HashSet<>();
+        for (Enchantment transferred : enchantments.keySet()) {
+            transferredKeys.add(String.valueOf(KeyedCompat.key(transferred)));
+        }
+
+        for (Enchantment present : new java.util.ArrayList<>(item.getEnchantments().keySet())) {
+            if (transferredKeys.contains(String.valueOf(KeyedCompat.key(present)))) {
+                item.removeEnchantment(present);
+            }
+        }
     }
 
     private boolean isDisenchantable(@Nullable ItemStack item) {

@@ -204,8 +204,10 @@ public class PacketTranslationService implements Listener {
             return rewriteGuideBook(nmsItem, bukkit, language); // null id → maybe the guide book
         }
         boolean includeDescription = !Boolean.FALSE.equals(descriptionsCache.get(playerId)); // default true
+        // Pass the CONCRETE item's enchantments so the re-rendered enchant lore reflects reality - e.g. a
+        // tool that was disenchanted must stop showing the template's enchant text.
         ItemTranslationService.RenderedDisplay display =
-            Slimefun.getItemTranslationService().renderForPacket(id, language, fallback, includeDescription);
+            Slimefun.getItemTranslationService().renderForPacket(id, language, fallback, includeDescription, bukkit.getEnchantments());
         if (display == null) {
             return nmsItem;
         }

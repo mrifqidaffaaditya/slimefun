@@ -141,7 +141,8 @@ public class DirtyChestMenu extends ChestMenu {
                     // when their Slimefun id (PDC) matches. ItemUtils.canStack ignores the PDC entirely,
                     // which let two different-tier Slimefun items sharing a material/name (e.g.
                     // BLISTERING_INGOT vs BLISTERING_INGOT_2) wrongly stack into one - the item-merge bug.
-                    if (SlimefunUtils.isItemSimilar(stack, wrapper, true, false)) {
+                    // Guarded: this runs on the machine-tick path, and a thrown ticker deletes the block.
+                    if (canMergeStacks(stack, wrapper)) {
                         amount -= (maxStackSize - stack.getAmount());
                         stack.setAmount(Math.min(stack.getAmount() + item.getAmount(), maxStackSize));
                         item.setAmount(amount);
@@ -154,6 +155,21 @@ public class DirtyChestMenu extends ChestMenu {
             return CustomItemStack.create(item, amount);
         } else {
             return null;
+        }
+    }
+
+    /**
+     * Whether {@code incoming} may merge onto the existing {@code stack}. Uses
+     * {@link SlimefunUtils#isItemSimilar} so two items only stack when their Slimefun id (PDC) matches
+     * (dough's {@code ItemUtils.canStack} ignores the PDC, which merged different-tier items). Guarded so
+     * it can never throw on the machine-tick path - a thrown ticker gets its block deleted by the
+     * TickerTask; on failure we conservatively fall back to the dough stack check.
+     */
+    private boolean canMergeStacks(@Nonnull ItemStack stack, @Nonnull ItemStack incoming) {
+        try {
+            return SlimefunUtils.isItemSimilar(stack, incoming, true, false);
+        } catch (Exception | LinkageError x) {
+            return ItemUtils.canStack(incoming, stack);
         }
     }
 

@@ -475,15 +475,39 @@ public class ItemTranslationService {
      * @param fallback   what a missing label becomes (ENGLISH or ID)
      */
     public RenderedDisplay renderForPacket(@Nonnull String id, @Nullable String languageId, @Nonnull TranslationConfig.FallbackMode fallback, boolean includeDescription) {
+        return renderForPacket(id, languageId, fallback, includeDescription, null);
+    }
+
+    /**
+     * @param actualEnchantments
+     *            The enchantments of the concrete {@link ItemStack} being rendered, or null to use the
+     *            item template's. Passing the real enchantments lets a disenchanted tool stop showing the
+     *            template's enchant lore lines. A render that used instance-specific enchantments (differing
+     *            from the template) is never cached, since the cache is keyed by id/language only.
+     */
+    public RenderedDisplay renderForPacket(@Nonnull String id, @Nullable String languageId, @Nonnull TranslationConfig.FallbackMode fallback, boolean includeDescription, @Nullable Map<org.bukkit.enchantments.Enchantment, Integer> actualEnchantments) {
         SlimefunItem item = SlimefunItem.getById(id);
         if (item == null) {
             return null;
         }
 
+        // Whether the concrete item's enchantments differ from the template's - if so the composed lore is
+        // instance-specific and must NOT be served from (or written to) the id-keyed cache.
+        boolean instanceSpecificEnchants = false;
+        if (actualEnchantments != null) {
+            try {
+                instanceSpecificEnchants = !actualEnchantments.equals(item.getItem().getEnchantments());
+            } catch (Exception | LinkageError ignored) {
+                instanceSpecificEnchants = !actualEnchantments.isEmpty();
+            }
+        }
+
         String cacheKey = id + '|' + languageId + '|' + fallback + '|' + includeDescription;
-        RenderedDisplay cached = renderCache.get(cacheKey);
-        if (cached != null) {
-            return cached;
+        if (!instanceSpecificEnchants) {
+            RenderedDisplay cached = renderCache.get(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
         }
 
         // Resolve once so the name and the lore blocks below can never disagree about which language
@@ -527,7 +551,7 @@ public class ItemTranslationService {
         List<String> fallbackBase = (translation != null && !translation.lore.isEmpty()) ? translation.lore
             : (englishTranslation != null && !englishTranslation.lore.isEmpty()) ? englishTranslation.lore
             : englishLore;
-        List<String> lore = LoreComposer.compose(item, blocks.get(0), blocks.get(1), blocks.get(2), blocks.get(3), fallbackBase, includeDescription, effectiveLanguage);
+        List<String> lore = LoreComposer.compose(item, blocks.get(0), blocks.get(1), blocks.get(2), blocks.get(3), fallbackBase, includeDescription, effectiveLanguage, actualEnchantments);
 
         RenderedDisplay result = new RenderedDisplay(name, lore);
 
@@ -537,7 +561,7 @@ public class ItemTranslationService {
         // restart (clearRenderCache is not called at runtime), which is exactly the "item intermittently
         // shows its raw id" bug. Leaving it uncached lets the next packet re-render it correctly the moment
         // the translation/baseline becomes available.
-        if (!name.equals(id)) {
+        if (!name.equals(id) && !instanceSpecificEnchants) {
             renderCache.put(cacheKey, result);
         }
 

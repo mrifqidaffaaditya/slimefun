@@ -49,6 +49,31 @@ public class ChestMenu {
     }
 
     /**
+     * Updates the title of this menu. This only takes effect for inventories built afterwards, so it must
+     * be called before the menu is first opened (the backing {@link Inventory} is created lazily). Used to
+     * refresh a machine's window title after its display name is baked at boot.
+     *
+     * @param newTitle The new (raw, '&'-coloured) title
+     */
+    public void setTitle(String newTitle) {
+        if (newTitle == null) {
+            return;
+        }
+
+        String translated = ChatColor.translateAlternateColorCodes('&', newTitle);
+
+        if (!translated.equals(this.title)) {
+            this.title = translated;
+
+            // Drop any not-yet-shown cached inventory so it is rebuilt with the new title. If it is already
+            // being viewed we deliberately leave it - Bukkit can't rename an open inventory.
+            if (this.inv != null && this.inv.getViewers().isEmpty()) {
+                this.inv = null;
+            }
+        }
+    }
+
+    /**
      * Toggles whether Players can access there
      * Inventory while viewing this Menu
      *

@@ -135,6 +135,7 @@ tasks {
         // don't all compile against the fork yet. Widen this include as they're brought back.
         include("**/BootSmokeTest.java")
         include("**/BackpackIdentityTest.java")
+        include("**/DisenchantLogicTest.java")
         include("**/Slimefun4CompatEventTest.java")
         include("**/ItemFamilyTest.java")
         include("**/TestMenuListenerCollectGuard.java")
@@ -174,6 +175,7 @@ tasks {
         forkEvery = 1
         include("**/BootSmokeTest*")
         include("**/BackpackIdentityTest*")
+        include("**/DisenchantLogicTest*")
         include("**/Slimefun4CompatEventTest*")
         include("**/ItemFamilyTest*")
         include("**/TestMenuListenerCollectGuard*")

@@ -16,6 +16,7 @@ import com.cryptomorin.xseries.XMaterial;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import io.github.bakedlibs.dough.items.CustomItemStack;
 import io.github.thebusybiscuit.slimefun5.api.SlimefunAddon;
@@ -29,6 +30,7 @@ import io.github.thebusybiscuit.slimefun5.core.attributes.MachineProcessHolder;
 import io.github.thebusybiscuit.slimefun5.core.handlers.BlockBreakHandler;
 import io.github.thebusybiscuit.slimefun5.core.machines.MachineProcessor;
 import io.github.thebusybiscuit.slimefun5.core.networks.energy.EnergyNetComponentType;
+import io.github.thebusybiscuit.slimefun5.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun5.implementation.handlers.SimpleBlockBreakHandler;
 import io.github.thebusybiscuit.slimefun5.implementation.operations.CraftingOperation;
 import io.github.thebusybiscuit.slimefun5.utils.ChestMenuUtils;
@@ -373,7 +375,13 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
                         ItemStack rest = inv.pushItem(refreshOutputDisplay(output.clone()), getOutputSlots());
 
                         if (rest != null) {
-                            b.getWorld().dropItemNaturally(b.getLocation(), rest);
+                            // fitsOutput() above already guaranteed the results fit, so a remainder here is
+                            // an edge case (e.g. a concurrent player click). Dropping an item spawns an
+                            // entity, which MUST happen on the main thread - this ticker runs async, so
+                            // doing it inline threw "Asynchronous entity add!" every tick and got the
+                            // machine block terminated. Schedule the drop onto the main thread instead.
+                            Location dropLocation = b.getLocation();
+                            Slimefun.runSync(() -> dropLocation.getWorld().dropItemNaturally(dropLocation, rest));
                         }
                     }
 
@@ -435,37 +443,56 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
             return output;
         }
 
-        SlimefunItem sfItem = SlimefunItem.getByItem(output);
+        // This is a purely cosmetic convenience that runs on the hot machine-tick path. It must NEVER be
+        // able to throw: an exception thrown from a BlockTicker four ticks in a row makes the TickerTask
+        // TERMINATE the block (delete its data and set it to AIR) - i.e. the machine would vanish. Any
+        // failure here therefore falls back to returning the output unchanged.
+        try {
+            SlimefunItem sfItem = SlimefunItem.getByItem(output);
 
-        if (sfItem == null) {
+            if (sfItem == null) {
+                return output;
+            }
+
+            ItemStack baked = sfItem.getItem();
+            ItemMeta bakedMeta = baked != null ? baked.getItemMeta() : null;
+
+            if (bakedMeta == null) {
+                return output;
+            }
+
+            ItemMeta meta = output.getItemMeta();
+
+            if (meta == null) {
+                return output;
+            }
+
+            // Only fill in the baked name/lore when the output is MISSING them - i.e. it is the stale
+            // pre-bake recipe clone (a recipe captured a clone of the template before canonicalizeToId()
+            // baked the display in, so a machine output showed its vanilla name/no lore and would not stack
+            // with a /give item). We deliberately copy ONLY name + lore and preserve everything else
+            // (enchantments, PDC, amount, flags): a full rebuild would wipe runtime state such as the
+            // enchantments the AutoEnchanter just applied, or a disenchanted tool's removed enchantments.
+            boolean changed = false;
+
+            if (!meta.hasDisplayName() && bakedMeta.hasDisplayName()) {
+                meta.setDisplayName(bakedMeta.getDisplayName());
+                changed = true;
+            }
+
+            if (!meta.hasLore() && bakedMeta.hasLore()) {
+                meta.setLore(bakedMeta.getLore());
+                changed = true;
+            }
+
+            if (changed) {
+                output.setItemMeta(meta);
+            }
+
+            return output;
+        } catch (Exception | LinkageError x) {
             return output;
         }
-
-        ItemStack baked = sfItem.getItem();
-
-        if (baked == null) {
-            return output;
-        }
-
-        ItemStack template = baked.clone();
-        template.setAmount(output.getAmount());
-
-        // If the output already stacks with the baked template, it's fine - leave it untouched.
-        if (template.isSimilar(output)) {
-            return output;
-        }
-
-        // Items that legitimately carry per-instance data (backpacks, charged/soulbound items, ...) mark
-        // themselves as DistinctiveItem. Never rebuild those - their meta is meant to differ, and copying
-        // the template would wipe the per-instance data.
-        if (sfItem instanceof io.github.thebusybiscuit.slimefun5.core.attributes.DistinctiveItem) {
-            return output;
-        }
-
-        // Otherwise the output is the stale pre-bake recipe clone: same id, but its name/lore differ from
-        // the template (they were baked into the template only AFTER the recipe captured it), which is
-        // exactly why it won't stack with a /give item. Rebuild it from the canonical baked template.
-        return template;
     }
 
     /**
@@ -482,47 +509,53 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
      * @return Whether every output can be placed into the output slots
      */
     protected boolean fitsOutput(BlockMenu inv, ItemStack[] outputs) {
-        Map<Integer, Integer> simulatedAmounts = new HashMap<>();
+        // Runs on the hot machine-tick path: it must never throw (a ticker that throws four ticks running
+        // gets its block terminated by the TickerTask). On any failure fall back to the dough fit check.
+        try {
+            Map<Integer, Integer> simulatedAmounts = new HashMap<>();
 
-        for (ItemStack output : outputs) {
-            if (output == null || output.getType() == Material.AIR) {
-                continue;
-            }
-
-            int remaining = output.getAmount();
-            ItemStackWrapper wrapper = ItemStackWrapper.wrap(output);
-
-            for (int slot : getOutputSlots()) {
-                if (remaining <= 0) {
-                    break;
+            for (ItemStack output : outputs) {
+                if (output == null || output.getType() == Material.AIR) {
+                    continue;
                 }
 
-                ItemStack stack = inv.getItemInSlot(slot);
+                int remaining = output.getAmount();
+                ItemStackWrapper wrapper = ItemStackWrapper.wrap(output);
 
-                if (stack == null || stack.getType() == Material.AIR) {
-                    // An empty slot swallows a whole stack. Reserve it so a later output can't reuse it.
-                    if (!simulatedAmounts.containsKey(slot)) {
-                        simulatedAmounts.put(slot, remaining);
-                        remaining = 0;
+                for (int slot : getOutputSlots()) {
+                    if (remaining <= 0) {
+                        break;
                     }
-                } else if (SlimefunUtils.isItemSimilar(stack, wrapper, true, false)) {
-                    int used = simulatedAmounts.getOrDefault(slot, stack.getAmount());
-                    int free = stack.getMaxStackSize() - used;
 
-                    if (free > 0) {
-                        int placed = Math.min(free, remaining);
-                        simulatedAmounts.put(slot, used + placed);
-                        remaining -= placed;
+                    ItemStack stack = inv.getItemInSlot(slot);
+
+                    if (stack == null || stack.getType() == Material.AIR) {
+                        // An empty slot swallows a whole stack. Reserve it so a later output can't reuse it.
+                        if (!simulatedAmounts.containsKey(slot)) {
+                            simulatedAmounts.put(slot, remaining);
+                            remaining = 0;
+                        }
+                    } else if (SlimefunUtils.isItemSimilar(stack, wrapper, true, false)) {
+                        int used = simulatedAmounts.getOrDefault(slot, stack.getAmount());
+                        int free = stack.getMaxStackSize() - used;
+
+                        if (free > 0) {
+                            int placed = Math.min(free, remaining);
+                            simulatedAmounts.put(slot, used + placed);
+                            remaining -= placed;
+                        }
                     }
+                }
+
+                if (remaining > 0) {
+                    return false;
                 }
             }
 
-            if (remaining > 0) {
-                return false;
-            }
+            return true;
+        } catch (Exception | LinkageError x) {
+            return io.github.bakedlibs.dough.inventory.InvUtils.fitAll(inv.toInventory(), outputs, getOutputSlots());
         }
-
-        return true;
     }
 
     protected MachineRecipe findNextRecipe(BlockMenu inv) {

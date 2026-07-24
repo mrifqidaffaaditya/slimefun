@@ -27,18 +27,16 @@ import io.github.thebusybiscuit.slimefun5.api.items.ItemSpawnReason;
  * 
  * @see ItemSpawnReason
  */
-public class SlimefunItemSpawnEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class SlimefunItemSpawnEvent extends io.github.thebusybiscuit.slimefun4.api.events.SlimefunItemSpawnEvent {
 
     private Location location;
     private ItemStack itemStack;
-    private boolean cancelled;
     private final ItemSpawnReason itemSpawnReason;
     private final Player player;
 
     @ParametersAreNonnullByDefault
     public SlimefunItemSpawnEvent(@Nullable Player player, Location location, ItemStack itemStack, ItemSpawnReason itemSpawnReason) {
+        super(false);
         this.location = location;
         this.itemStack = itemStack;
         this.itemSpawnReason = itemSpawnReason;
@@ -112,18 +110,8 @@ public class SlimefunItemSpawnEvent extends Event implements Cancellable {
         this.itemStack = itemStack;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
-    }
-
     public static @Nonnull HandlerList getHandlerList() {
-        return handlers;
+        return io.github.thebusybiscuit.slimefun4.api.events.SlimefunItemSpawnEvent.getHandlerList();
     }
 
     @Override

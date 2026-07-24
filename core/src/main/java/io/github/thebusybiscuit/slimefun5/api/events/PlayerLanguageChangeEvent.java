@@ -18,15 +18,14 @@ import io.github.thebusybiscuit.slimefun5.core.services.localization.Language;
  * @see LocalizationService
  *
  */
-public class PlayerLanguageChangeEvent extends Event {
-
-    private static final HandlerList handlers = new HandlerList();
+public class PlayerLanguageChangeEvent extends io.github.thebusybiscuit.slimefun4.api.events.PlayerLanguageChangeEvent {
 
     private final Player player;
     private final Language from;
     private final Language to;
 
     public PlayerLanguageChangeEvent(@Nonnull Player p, @Nonnull Language from, @Nonnull Language to) {
+        super(false);
         player = p;
         this.from = from;
         this.to = to;
@@ -64,12 +63,7 @@ public class PlayerLanguageChangeEvent extends Event {
     }
 
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.PlayerLanguageChangeEvent.getHandlerList();
     }
 
 }

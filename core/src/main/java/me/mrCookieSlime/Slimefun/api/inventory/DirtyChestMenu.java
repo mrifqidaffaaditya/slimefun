@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import io.github.bakedlibs.dough.inventory.InvUtils;
 import io.github.bakedlibs.dough.items.CustomItemStack;
 import io.github.bakedlibs.dough.items.ItemUtils;
+import io.github.thebusybiscuit.slimefun5.utils.SlimefunUtils;
 import io.github.thebusybiscuit.slimefun5.utils.itemstack.ItemStackWrapper;
 
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
@@ -136,7 +137,11 @@ public class DirtyChestMenu extends ChestMenu {
                         wrapper = ItemStackWrapper.wrap(item);
                     }
 
-                    if (ItemUtils.canStack(wrapper, stack)) {
+                    // Use SlimefunUtils.isItemSimilar (NOT ItemUtils.canStack) so items are only merged
+                    // when their Slimefun id (PDC) matches. ItemUtils.canStack ignores the PDC entirely,
+                    // which let two different-tier Slimefun items sharing a material/name (e.g.
+                    // BLISTERING_INGOT vs BLISTERING_INGOT_2) wrongly stack into one - the item-merge bug.
+                    if (SlimefunUtils.isItemSimilar(stack, wrapper, true, false)) {
                         amount -= (maxStackSize - stack.getAmount());
                         stack.setAmount(Math.min(stack.getAmount() + item.getAmount(), maxStackSize));
                         item.setAmount(amount);

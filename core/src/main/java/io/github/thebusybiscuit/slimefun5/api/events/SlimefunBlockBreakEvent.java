@@ -18,16 +18,13 @@ import io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem;
  * 
  * @author J3fftw1
  */
-public class SlimefunBlockBreakEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class SlimefunBlockBreakEvent extends io.github.thebusybiscuit.slimefun4.api.events.SlimefunBlockBreakEvent {
 
     private final Block blockBroken;
     private final SlimefunItem slimefunItem;
     private final ItemStack heldItem;
     private final Player player;
 
-    private boolean cancelled = false;
 
     /**
      * @param player
@@ -41,7 +38,7 @@ public class SlimefunBlockBreakEvent extends Event implements Cancellable {
      */
     @ParametersAreNonnullByDefault
     public SlimefunBlockBreakEvent(Player player, ItemStack heldItem, Block blockBroken, SlimefunItem slimefunItem) {
-        super();
+        super(false);
         
         this.player = player;
         this.heldItem = heldItem;
@@ -85,18 +82,8 @@ public class SlimefunBlockBreakEvent extends Event implements Cancellable {
         return player;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
-    }
-
     public static @Nonnull HandlerList getHandlerList() {
-        return handlers;
+        return io.github.thebusybiscuit.slimefun4.api.events.SlimefunBlockBreakEvent.getHandlerList();
     }
 
     @Override

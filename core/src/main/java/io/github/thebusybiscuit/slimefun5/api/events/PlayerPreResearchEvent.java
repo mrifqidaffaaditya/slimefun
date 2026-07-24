@@ -24,17 +24,15 @@ import io.github.thebusybiscuit.slimefun5.implementation.guide.SurvivalSlimefunG
  * @see SurvivalSlimefunGuide
  *
  */
-public class PlayerPreResearchEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class PlayerPreResearchEvent extends io.github.thebusybiscuit.slimefun4.api.events.PlayerPreResearchEvent {
 
     private final Player player;
     private final Research research;
     private final SlimefunItem slimefunItem;
-    private boolean cancelled;
 
     @ParametersAreNonnullByDefault
     public PlayerPreResearchEvent(Player p, Research research, SlimefunItem slimefunItem) {
+        super(false);
         Validate.notNull(p, "The Player cannot be null");
         Validate.notNull(research, "Research cannot be null");
         Validate.notNull(slimefunItem, "SlimefunItem cannot be null");
@@ -61,23 +59,7 @@ public class PlayerPreResearchEvent extends Event implements Cancellable {
 
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
+        return io.github.thebusybiscuit.slimefun4.api.events.PlayerPreResearchEvent.getHandlerList();
     }
 }
 

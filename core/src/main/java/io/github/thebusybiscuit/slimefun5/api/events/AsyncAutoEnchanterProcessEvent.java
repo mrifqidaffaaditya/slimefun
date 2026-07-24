@@ -18,15 +18,11 @@ import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
  *
  * @author StarWishsama
  */
-public class AsyncAutoEnchanterProcessEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class AsyncAutoEnchanterProcessEvent extends io.github.thebusybiscuit.slimefun4.api.events.AsyncAutoEnchanterProcessEvent {
 
     private final ItemStack item;
     private final ItemStack enchantedBook;
     private final BlockMenu menu;
-
-    private boolean cancelled;
 
     public AsyncAutoEnchanterProcessEvent(@Nonnull ItemStack item, @Nonnull ItemStack enchantedBook, @Nonnull BlockMenu menu) {
         // Thread-adaptive: a VIEWED machine ticks on the main thread while unviewed ticks are async;
@@ -74,23 +70,7 @@ public class AsyncAutoEnchanterProcessEvent extends Event implements Cancellable
 
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        return io.github.thebusybiscuit.slimefun4.api.events.AsyncAutoEnchanterProcessEvent.getHandlerList();
     }
 }
 

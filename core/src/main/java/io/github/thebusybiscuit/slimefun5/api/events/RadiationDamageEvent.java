@@ -12,12 +12,10 @@ import org.bukkit.event.HandlerList;
  * 
  * @author HoosierTransfer
  */
-public class RadiationDamageEvent extends Event implements Cancellable {
-    private static final HandlerList handlers = new HandlerList();
+public class RadiationDamageEvent extends io.github.thebusybiscuit.slimefun4.api.events.RadiationDamageEvent {
 
     private final Player player;
     private final int exposure;
-    private boolean cancelled;
 
     /**
      * This constructs a new {@link RadiationDamageEvent}.
@@ -26,6 +24,7 @@ public class RadiationDamageEvent extends Event implements Cancellable {
      * @param exposure The amount of radiation exposure
      */
     public RadiationDamageEvent(@Nonnull Player player, int exposure) {
+        super(false);
         this.player = player;
         this.exposure = exposure;
     }
@@ -48,18 +47,8 @@ public class RadiationDamageEvent extends Event implements Cancellable {
         return exposure;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
-    }
-
     public static @Nonnull HandlerList getHandlerList() {
-        return handlers;
+        return io.github.thebusybiscuit.slimefun4.api.events.RadiationDamageEvent.getHandlerList();
     }
 
     @Override

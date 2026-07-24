@@ -34,9 +34,7 @@ import me.mrCookieSlime.Slimefun.api.BlockStorage;
  * @author TheBusyBiscuit
  *
  */
-public class PlayerRightClickEvent extends PlayerEvent {
-
-    private static final HandlerList handlers = new HandlerList();
+public class PlayerRightClickEvent extends io.github.thebusybiscuit.slimefun4.api.events.PlayerRightClickEvent {
 
     /**
      * The original {@link PlayerInteractEvent}.
@@ -181,13 +179,7 @@ public class PlayerRightClickEvent extends PlayerEvent {
 
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.PlayerRightClickEvent.getHandlerList();
     }
 
 }

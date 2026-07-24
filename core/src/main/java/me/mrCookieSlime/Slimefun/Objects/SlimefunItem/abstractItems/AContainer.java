@@ -17,7 +17,6 @@ import org.bukkit.block.Block;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import io.github.bakedlibs.dough.inventory.InvUtils;
 import io.github.bakedlibs.dough.items.CustomItemStack;
 import io.github.thebusybiscuit.slimefun5.api.SlimefunAddon;
 import io.github.thebusybiscuit.slimefun5.api.items.ItemGroup;
@@ -363,7 +362,7 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
                     processor.updateProgressBar(inv, 22, currentOperation);
                     currentOperation.addProgress(1);
                 } else {
-                    if (!InvUtils.fitAll(inv.toInventory(), currentOperation.getResults(), getOutputSlots())) {
+                    if (!fitsOutput(inv, currentOperation.getResults())) {
                         // Output can't fit right now - hold the finished operation until space frees up
                         return;
                     }
@@ -371,7 +370,7 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
                     inv.replaceExistingItem(22, CustomItemStack.create(XMaterial.BLACK_STAINED_GLASS_PANE.parseMaterial(), " "));
 
                     for (ItemStack output : currentOperation.getResults()) {
-                        ItemStack rest = inv.pushItem(output.clone(), getOutputSlots());
+                        ItemStack rest = inv.pushItem(refreshOutputDisplay(output.clone()), getOutputSlots());
 
                         if (rest != null) {
                             b.getWorld().dropItemNaturally(b.getLocation(), rest);
@@ -418,6 +417,114 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
         }
     }
 
+    /**
+     * Refreshes a machine output's display (name + lore) from its canonical {@link SlimefunItem} template.
+     * <p>
+     * Machine recipes are registered during item setup, which runs <strong>before</strong>
+     * {@code ItemTranslationService.canonicalizeToId()} bakes the translated name/lore into each item's
+     * template. Recipe outputs therefore captured a clone of the still-unbaked template (raw material, no
+     * display name), so items coming <em>out of a machine</em> showed their vanilla name/no lore until an
+     * interaction re-sent a corrected packet - while {@code /give} items (which read the live, already-baked
+     * template) looked fine. Re-stamping the output from the current template fixes this at the source.
+     *
+     * @param output The output {@link ItemStack} about to be pushed
+     * @return The same {@link ItemStack}, with its display refreshed when a canonical template is known
+     */
+    protected ItemStack refreshOutputDisplay(ItemStack output) {
+        if (output == null) {
+            return output;
+        }
+
+        SlimefunItem sfItem = SlimefunItem.getByItem(output);
+
+        if (sfItem == null) {
+            return output;
+        }
+
+        ItemStack baked = sfItem.getItem();
+
+        if (baked == null) {
+            return output;
+        }
+
+        ItemStack template = baked.clone();
+        template.setAmount(output.getAmount());
+
+        // If the output already stacks with the baked template, it's fine - leave it untouched.
+        if (template.isSimilar(output)) {
+            return output;
+        }
+
+        // Items that legitimately carry per-instance data (backpacks, charged/soulbound items, ...) mark
+        // themselves as DistinctiveItem. Never rebuild those - their meta is meant to differ, and copying
+        // the template would wipe the per-instance data.
+        if (sfItem instanceof io.github.thebusybiscuit.slimefun5.core.attributes.DistinctiveItem) {
+            return output;
+        }
+
+        // Otherwise the output is the stale pre-bake recipe clone: same id, but its name/lore differ from
+        // the template (they were baked into the template only AFTER the recipe captured it), which is
+        // exactly why it won't stack with a /give item. Rebuild it from the canonical baked template.
+        return template;
+    }
+
+    /**
+     * A Slimefun-aware replacement for {@code InvUtils.fitAll}. The dough helper stacks items using
+     * {@code ItemUtils.canStack}, which ignores the Persistent Data Container, so it reports that a
+     * different-tier Slimefun item (same material/name, e.g. BLISTERING_INGOT vs BLISTERING_INGOT_2)
+     * "fits" onto an existing stack when it actually cannot. That made the machine consume its input and
+     * keep processing into a full/incompatible output instead of stalling. This variant simulates the
+     * push using {@link SlimefunUtils#isItemSimilar} (which compares the SF id) so a full output correctly
+     * blocks the operation.
+     *
+     * @param inv     The {@link BlockMenu} to test against
+     * @param outputs The output {@link ItemStack ItemStacks} to place
+     * @return Whether every output can be placed into the output slots
+     */
+    protected boolean fitsOutput(BlockMenu inv, ItemStack[] outputs) {
+        Map<Integer, Integer> simulatedAmounts = new HashMap<>();
+
+        for (ItemStack output : outputs) {
+            if (output == null || output.getType() == Material.AIR) {
+                continue;
+            }
+
+            int remaining = output.getAmount();
+            ItemStackWrapper wrapper = ItemStackWrapper.wrap(output);
+
+            for (int slot : getOutputSlots()) {
+                if (remaining <= 0) {
+                    break;
+                }
+
+                ItemStack stack = inv.getItemInSlot(slot);
+
+                if (stack == null || stack.getType() == Material.AIR) {
+                    // An empty slot swallows a whole stack. Reserve it so a later output can't reuse it.
+                    if (!simulatedAmounts.containsKey(slot)) {
+                        simulatedAmounts.put(slot, remaining);
+                        remaining = 0;
+                    }
+                } else if (SlimefunUtils.isItemSimilar(stack, wrapper, true, false)) {
+                    int used = simulatedAmounts.getOrDefault(slot, stack.getAmount());
+                    int free = stack.getMaxStackSize() - used;
+
+                    if (free > 0) {
+                        int placed = Math.min(free, remaining);
+                        simulatedAmounts.put(slot, used + placed);
+                        remaining -= placed;
+                    }
+                }
+            }
+
+            if (remaining > 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     protected MachineRecipe findNextRecipe(BlockMenu inv) {
         Map<Integer, ItemStack> inventory = new HashMap<>();
 
@@ -442,7 +549,7 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
             }
 
             if (found.size() == recipe.getInput().length) {
-                if (!InvUtils.fitAll(inv.toInventory(), recipe.getOutput(), getOutputSlots())) {
+                if (!fitsOutput(inv, recipe.getOutput())) {
                     return null;
                 }
 

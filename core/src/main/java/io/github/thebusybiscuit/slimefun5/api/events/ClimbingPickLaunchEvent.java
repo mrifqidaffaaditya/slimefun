@@ -24,16 +24,12 @@ import io.github.thebusybiscuit.slimefun5.implementation.items.tools.ClimbingPic
  * @see ClimbingPick
  *
  */
-public class ClimbingPickLaunchEvent extends PlayerEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class ClimbingPickLaunchEvent extends io.github.thebusybiscuit.slimefun4.api.events.ClimbingPickLaunchEvent {
 
     private Vector velocity;
     private final ClimbingPick pick;
     private final ItemStack itemStack;
     private final Block block;
-
-    private boolean cancelled;
 
     @ParametersAreNonnullByDefault
     public ClimbingPickLaunchEvent(Player player, Vector velocity, ClimbingPick pick, ItemStack itemStack, Block block) {
@@ -97,25 +93,9 @@ public class ClimbingPickLaunchEvent extends PlayerEvent implements Cancellable 
         return block;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.ClimbingPickLaunchEvent.getHandlerList();
     }
 }
 

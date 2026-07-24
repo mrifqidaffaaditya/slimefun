@@ -26,12 +26,9 @@ import io.github.thebusybiscuit.slimefun5.implementation.tasks.AncientAltarTask;
  * @see AncientAltarTask
  * @see AncientAltarListener
  */
-public class AncientAltarCraftEvent extends PlayerEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class AncientAltarCraftEvent extends io.github.thebusybiscuit.slimefun4.api.events.AncientAltarCraftEvent {
     private final Block block;
     private ItemStack output;
-    private boolean cancelled;
 
     /**
      * @param output
@@ -84,24 +81,13 @@ public class AncientAltarCraftEvent extends PlayerEvent implements Cancellable {
     }
 
     @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
     public void setCancelled(boolean cancel) {
         cancelled = cancel;
     }
 
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.AncientAltarCraftEvent.getHandlerList();
     }
 
 }

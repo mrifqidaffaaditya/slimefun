@@ -57,7 +57,7 @@ public class ElectricDustWasher extends AContainer {
 
                 recipe = new MachineRecipe(Math.max(1, 4 / getSpeed()), new ItemStack[] { SlimefunItems.SIFTED_ORE.item() }, new ItemStack[] { oreWasher.getRandomDust() });
 
-                if (!legacyMode || menu.fits(recipe.getOutput()[0], getOutputSlots())) {
+                if (!legacyMode || fitsOutput(menu, recipe.getOutput())) {
                     menu.consumeItem(slot);
                     return recipe;
                 }
@@ -67,7 +67,7 @@ public class ElectricDustWasher extends AContainer {
                 recipe = new MachineRecipe(Math.max(1, 4 / getSpeed()), new ItemStack[] { new ItemStack(Material.SAND) }, new ItemStack[] { SlimefunItems.SALT.item() });
             }
 
-            if (recipe != null && menu.fits(recipe.getOutput()[0], getOutputSlots())) {
+            if (recipe != null && fitsOutput(menu, recipe.getOutput())) {
                 menu.consumeItem(slot);
                 return recipe;
             }

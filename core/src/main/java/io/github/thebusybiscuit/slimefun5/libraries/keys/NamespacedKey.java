@@ -27,13 +27,38 @@ public final class NamespacedKey {
     private final String key;
 
     public NamespacedKey(Plugin owner, String key) {
-        this.namespace = owner == null ? "minecraft" : owner.getName().toLowerCase();
+        // Locale.ROOT: a locale-sensitive toLowerCase() (e.g. Turkish "I" -> "ı") would produce a
+        // namespace the server rejects on 1.21+/26.x, making PDC writes silently no-op and every item of
+        // the same material stack together (the item-merge bug). Also sanitize to the charset the modern
+        // NamespacedKey validator allows: [a-z0-9._-].
+        this.namespace = owner == null ? MINECRAFT : sanitize(owner.getName().toLowerCase(java.util.Locale.ROOT));
         this.key = key;
     }
 
     public NamespacedKey(String namespace, String key) {
         this.namespace = namespace;
         this.key = key;
+    }
+
+    /**
+     * Coerces a raw string into the charset the modern {@code org.bukkit.NamespacedKey} validator accepts
+     * ({@code [a-z0-9._-]}). On 1.21+/26.x an invalid namespace makes key construction throw, which would
+     * silently drop the Slimefun id from the item's persistent data.
+     */
+    private static String sanitize(String raw) {
+        StringBuilder builder = new StringBuilder(raw.length());
+
+        for (int i = 0; i < raw.length(); i++) {
+            char c = raw.charAt(i);
+
+            if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-') {
+                builder.append(c);
+            } else {
+                builder.append('_');
+            }
+        }
+
+        return builder.length() == 0 ? MINECRAFT : builder.toString();
     }
 
     public static NamespacedKey minecraft(String key) {

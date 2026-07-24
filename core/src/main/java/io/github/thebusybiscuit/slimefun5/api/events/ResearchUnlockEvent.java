@@ -19,13 +19,10 @@ import io.github.thebusybiscuit.slimefun5.api.researches.Research;
  * @see Research
  *
  */
-public class ResearchUnlockEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class ResearchUnlockEvent extends io.github.thebusybiscuit.slimefun4.api.events.ResearchUnlockEvent {
 
     private final Player player;
     private final Research research;
-    private boolean cancelled;
 
     public ResearchUnlockEvent(@Nonnull Player p, @Nonnull Research research) {
         super(!Bukkit.isPrimaryThread());
@@ -47,25 +44,9 @@ public class ResearchUnlockEvent extends Event implements Cancellable {
         return research;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.ResearchUnlockEvent.getHandlerList();
     }
 
 }

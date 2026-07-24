@@ -18,9 +18,7 @@ import io.github.thebusybiscuit.slimefun5.core.machines.MachineProcessor;
  * @author TheBusyBiscuit
  *
  */
-public class AsyncMachineOperationFinishEvent extends Event {
-
-    private static final HandlerList handlers = new HandlerList();
+public class AsyncMachineOperationFinishEvent extends io.github.thebusybiscuit.slimefun4.api.events.AsyncMachineOperationFinishEvent {
 
     private final BlockPosition position;
     private final MachineProcessor<?> machineProcessor;
@@ -66,13 +64,7 @@ public class AsyncMachineOperationFinishEvent extends Event {
 
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.AsyncMachineOperationFinishEvent.getHandlerList();
     }
 }
 

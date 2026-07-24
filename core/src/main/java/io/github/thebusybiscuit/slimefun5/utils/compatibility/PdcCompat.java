@@ -122,6 +122,23 @@ public final class PdcCompat {
 
         if (c != null && t != null && k != null) {
             ReflectionCompat.invoke(c, "set", k, t, value);
+
+            // Verify the write actually landed. On some server builds the reflective PDC set can silently
+            // fail (swallowed exception), which would drop the Slimefun id from the item - making every
+            // item of the same material stack together (the item-merge bug). If the read-back doesn't
+            // match, fall through to the NBT path so the id is never lost on an ItemMeta.
+            Object readBack = ReflectionCompat.invoke(c, "get", k, t);
+
+            if (readBack != null && readBack.equals(value)) {
+                return;
+            }
+
+            if (holder instanceof ItemMeta && NbtItemCompat.isSupported()
+                && NbtItemCompat.setString((ItemMeta) holder, key.toString(), String.valueOf(value))) {
+                return;
+            }
+
+            // Nothing else we can do; the container path was our best effort.
             return;
         }
 
@@ -144,7 +161,19 @@ public final class PdcCompat {
         Object k = BukkitKeys.toBukkit(key);
 
         if (c != null && t != null && k != null) {
-            return ReflectionCompat.invoke(c, "get", k, t);
+            Object value = ReflectionCompat.invoke(c, "get", k, t);
+
+            if (value != null) {
+                return value;
+            }
+
+            // The container path yielded nothing - the id may have been persisted via the NBT fallback
+            // in set(...) when the PDC write silently failed. Check there before giving up.
+            if (holder instanceof ItemMeta) {
+                return decodeNbt(NbtItemCompat.getString((ItemMeta) holder, key.toString()), typeName);
+            }
+
+            return null;
         }
 
         if (holder instanceof ItemMeta) {

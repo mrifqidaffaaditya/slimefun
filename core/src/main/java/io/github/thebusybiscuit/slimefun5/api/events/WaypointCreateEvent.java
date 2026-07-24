@@ -24,15 +24,12 @@ import io.github.thebusybiscuit.slimefun5.api.gps.Waypoint;
  * @see Waypoint
  *
  */
-public class WaypointCreateEvent extends PlayerEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class WaypointCreateEvent extends io.github.thebusybiscuit.slimefun4.api.events.WaypointCreateEvent {
 
     private Location location;
     private String name;
 
     private final boolean deathpoint;
-    private boolean cancelled;
 
     public WaypointCreateEvent(@Nonnull Player player, @Nonnull String name, @Nonnull Location location) {
         super(player);
@@ -98,25 +95,9 @@ public class WaypointCreateEvent extends PlayerEvent implements Cancellable {
         return deathpoint;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.WaypointCreateEvent.getHandlerList();
     }
 
 }

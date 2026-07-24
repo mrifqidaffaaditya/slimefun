@@ -17,12 +17,9 @@ import io.github.thebusybiscuit.slimefun5.implementation.items.electric.machines
  *
  * @see AutoDisenchantEvent
  */
-public class AutoEnchantEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class AutoEnchantEvent extends io.github.thebusybiscuit.slimefun4.api.events.AutoEnchantEvent {
 
     private final ItemStack item;
-    private boolean cancelled;
 
     public AutoEnchantEvent(@Nonnull ItemStack item) {
         // Thread-adaptive: the machine ticker is async normally, but a VIEWED machine ticks on the main
@@ -43,25 +40,9 @@ public class AutoEnchantEvent extends Event implements Cancellable {
         return item;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.AutoEnchantEvent.getHandlerList();
     }
 
 }

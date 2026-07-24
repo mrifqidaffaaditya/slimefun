@@ -29,9 +29,7 @@ import io.github.thebusybiscuit.slimefun5.implementation.items.geo.GEOScanner;
  * @see GEOScanner
  *
  */
-public class GEOResourceGenerationEvent extends Event {
-
-    private static final HandlerList handlers = new HandlerList();
+public class GEOResourceGenerationEvent extends io.github.thebusybiscuit.slimefun4.api.events.GEOResourceGenerationEvent {
 
     private final World world;
     private final Biome biome;
@@ -43,6 +41,7 @@ public class GEOResourceGenerationEvent extends Event {
 
     @ParametersAreNonnullByDefault
     public GEOResourceGenerationEvent(World world, Biome biome, int x, int z, GEOResource resource, int value) {
+        super(false);
         this.world = world;
         this.biome = biome;
         this.resource = resource;
@@ -138,12 +137,7 @@ public class GEOResourceGenerationEvent extends Event {
     }
 
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.GEOResourceGenerationEvent.getHandlerList();
     }
 
 }

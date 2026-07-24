@@ -1,9 +1,6 @@
 package me.mrCookieSlime.Slimefun.api.inventory;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.logging.Level;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -12,7 +9,6 @@ import org.bukkit.inventory.ItemStack;
 
 import io.github.bakedlibs.dough.config.Config;
 import io.github.thebusybiscuit.slimefun5.implementation.Slimefun;
-
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 
 // This class will be deprecated, relocated and rewritten in a future version.
@@ -133,15 +129,10 @@ public class BlockMenu extends DirtyChestMenu {
     }
 
     public void delete(Location l) {
-        File file = new File("data-storage/Slimefun/stored-inventories/" + serializeLocation(l) + ".sfi");
-
-        if (file.exists()) {
-            try {
-                Files.delete(file.toPath());
-            } catch (IOException e) {
-                Slimefun.logger().log(Level.WARNING, e, () -> "Could not delete file \"" + file.getName() + '"');
-            }
-        }
+        // Delegates to the active backend so both LegacyFileBackend (.sfi) AND JdbcBackend (database)
+        // properly delete the inventory data. The old file-only delete silently left the DB row intact,
+        // causing a dupe: re-placing the block loaded the stale inventory from the database.
+        Slimefun.getBlockStorageBackend().deleteInventory(l);
     }
 }
 

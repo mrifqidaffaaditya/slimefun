@@ -91,12 +91,13 @@ public class EnhancedFurnace extends SimpleSlimefunItem<BlockTicker> {
 
                     // Check if the BlockState is a Furnace and cooking something
                     if (state instanceof Furnace && ((Furnace) state).getCookTime() > 0) {
-                        Furnace furnace = (Furnace) state;                        setProgress(furnace);
+                        Furnace furnace = (Furnace) state;
+                        setProgress(furnace);
 
-                        // Only update if necessary
-                        if (result.isSnapshot()) {
-                            state.update(true, false);
-                        }
+                        // Always flush the mutated cook time back to the world. Relying on
+                        // result.isSnapshot() skipped the update on live states, where the boost
+                        // then silently did nothing on all tiers.
+                        state.update(true, false);
                     }
                 }
             }

@@ -22,9 +22,7 @@ import io.github.thebusybiscuit.slimefun5.api.player.PlayerProfile;
  * @see PlayerProfile
  *
  */
-public class AsyncProfileLoadEvent extends Event {
-
-    private static final HandlerList handlers = new HandlerList();
+public class AsyncProfileLoadEvent extends io.github.thebusybiscuit.slimefun4.api.events.AsyncProfileLoadEvent {
 
     private final UUID uniqueId;
     private PlayerProfile profile;
@@ -64,13 +62,7 @@ public class AsyncProfileLoadEvent extends Event {
 
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.AsyncProfileLoadEvent.getHandlerList();
     }
 }
 

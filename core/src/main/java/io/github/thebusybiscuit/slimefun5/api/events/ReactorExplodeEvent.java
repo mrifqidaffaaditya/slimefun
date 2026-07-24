@@ -16,14 +16,13 @@ import io.github.thebusybiscuit.slimefun5.implementation.items.electric.reactors
  * @author TheBusyBiscuit
  *
  */
-public class ReactorExplodeEvent extends Event {
-
-    private static final HandlerList handlers = new HandlerList();
+public class ReactorExplodeEvent extends io.github.thebusybiscuit.slimefun4.api.events.ReactorExplodeEvent {
 
     private final Location location;
     private final Reactor reactor;
 
     public ReactorExplodeEvent(@Nonnull Location l, @Nonnull Reactor reactor) {
+        super(false);
         Validate.notNull(l, "A Location must be provided");
         Validate.notNull(reactor, "A Reactor cannot be null");
 
@@ -53,13 +52,7 @@ public class ReactorExplodeEvent extends Event {
 
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.ReactorExplodeEvent.getHandlerList();
     }
 
 }

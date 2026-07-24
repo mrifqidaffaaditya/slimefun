@@ -19,14 +19,11 @@ import io.github.thebusybiscuit.slimefun5.core.multiblocks.MultiBlock;
  * @author TheBusyBiscuit
  *
  */
-public class MultiBlockInteractEvent extends PlayerEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class MultiBlockInteractEvent extends io.github.thebusybiscuit.slimefun4.api.events.MultiBlockInteractEvent {
 
     private final MultiBlock multiBlock;
     private final Block clickedBlock;
     private final BlockFace clickedFace;
-    private boolean cancelled;
 
     @ParametersAreNonnullByDefault
     public MultiBlockInteractEvent(Player p, MultiBlock mb, Block clicked, BlockFace face) {
@@ -66,25 +63,9 @@ public class MultiBlockInteractEvent extends PlayerEvent implements Cancellable 
         return clickedFace;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.MultiBlockInteractEvent.getHandlerList();
     }
 
 }

@@ -18,13 +18,10 @@ import io.github.thebusybiscuit.slimefun5.implementation.items.androids.MinerAnd
  * @author poma123
  * 
  */
-public class AndroidMineEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class AndroidMineEvent extends io.github.thebusybiscuit.slimefun4.api.events.AndroidMineEvent {
 
     private final Block block;
     private final AndroidInstance android;
-    private boolean cancelled;
 
     /**
      * @param block
@@ -34,6 +31,7 @@ public class AndroidMineEvent extends Event implements Cancellable {
      */
     @ParametersAreNonnullByDefault
     public AndroidMineEvent(Block block, AndroidInstance android) {
+        super(false);
         this.block = block;
         this.android = android;
     }
@@ -60,24 +58,13 @@ public class AndroidMineEvent extends Event implements Cancellable {
     }
 
     @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
     public void setCancelled(boolean cancel) {
         cancelled = cancel;
     }
 
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.AndroidMineEvent.getHandlerList();
     }
 
 }

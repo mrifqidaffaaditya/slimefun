@@ -69,5 +69,19 @@ class TestItemDataService {
         Assertions.assertTrue(data2.isPresent());
         Assertions.assertEquals("Hello World", data2.get());
     }
+
+    @Test
+    @DisplayName("Two same-material items with different ids must NOT vanilla-stack")
+    void testDifferentIdsDoNotStack() {
+        CustomItemDataService service = new CustomItemDataService(plugin, "slimefun_item");
+
+        ItemStack a = new ItemStack(Material.GOLD_INGOT);
+        ItemStack b = new ItemStack(Material.GOLD_INGOT);
+
+        service.setItemData(a, "BLISTERING_INGOT");
+        service.setItemData(b, "BLISTERING_INGOT_2");
+
+        Assertions.assertFalse(a.isSimilar(b), "Different SF ids stacked in vanilla inventory (merge bug)");
+    }
 }
 

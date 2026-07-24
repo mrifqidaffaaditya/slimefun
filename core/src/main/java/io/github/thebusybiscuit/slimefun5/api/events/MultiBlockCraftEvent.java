@@ -21,13 +21,11 @@ import io.github.thebusybiscuit.slimefun5.core.multiblocks.MultiBlockMachine;
  * @author char321
  * @author JustAHuman
  */
-public class MultiBlockCraftEvent extends PlayerEvent implements Cancellable {
-    private static final HandlerList handlers = new HandlerList();
+public class MultiBlockCraftEvent extends io.github.thebusybiscuit.slimefun4.api.events.MultiBlockCraftEvent {
 
     private final MultiBlockMachine machine;
     private final ItemStack[] input;
     private ItemStack output;
-    private boolean cancelled;
 
     /**
      * Creates a new {@link MultiBlockCraftEvent}.
@@ -99,18 +97,8 @@ public class MultiBlockCraftEvent extends PlayerEvent implements Cancellable {
         return oldOutput;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
     public static @Nonnull HandlerList getHandlerList() {
-        return handlers;
+        return io.github.thebusybiscuit.slimefun4.api.events.MultiBlockCraftEvent.getHandlerList();
     }
 
     @Override

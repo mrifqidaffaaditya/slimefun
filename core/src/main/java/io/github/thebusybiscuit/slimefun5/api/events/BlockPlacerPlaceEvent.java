@@ -20,14 +20,11 @@ import io.github.thebusybiscuit.slimefun5.implementation.items.blocks.BlockPlace
  * @author TheBusyBiscuit
  * 
  */
-public class BlockPlacerPlaceEvent extends BlockEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class BlockPlacerPlaceEvent extends io.github.thebusybiscuit.slimefun4.api.events.BlockPlacerPlaceEvent {
 
     private final Block blockPlacer;
     private ItemStack placedItem;
 
-    private boolean cancelled = false;
     private boolean locked = false;
 
     /**
@@ -85,11 +82,6 @@ public class BlockPlacerPlaceEvent extends BlockEvent implements Cancellable {
     }
 
     @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
     public void setCancelled(boolean cancel) {
         if (!locked) {
             cancelled = cancel;
@@ -107,13 +99,7 @@ public class BlockPlacerPlaceEvent extends BlockEvent implements Cancellable {
 
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.BlockPlacerPlaceEvent.getHandlerList();
     }
 
 }

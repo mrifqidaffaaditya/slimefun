@@ -21,15 +21,12 @@ import io.github.thebusybiscuit.slimefun5.implementation.items.androids.FarmerAn
  * @author TheBusyBiscuit
  * 
  */
-public class AndroidFarmEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class AndroidFarmEvent extends io.github.thebusybiscuit.slimefun4.api.events.AndroidFarmEvent {
 
     private final Block block;
     private final AndroidInstance android;
     private final boolean isAdvanced;
     private ItemStack drop;
-    private boolean cancelled;
 
     /**
      * @param block
@@ -42,6 +39,7 @@ public class AndroidFarmEvent extends Event implements Cancellable {
      *            The item to be dropped or null
      */
     public AndroidFarmEvent(@Nonnull Block block, @Nonnull AndroidInstance android, boolean isAdvanced, @Nullable ItemStack drop) {
+        super(false);
         this.block = block;
         this.android = android;
         this.isAdvanced = isAdvanced;
@@ -99,24 +97,13 @@ public class AndroidFarmEvent extends Event implements Cancellable {
     }
 
     @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
     public void setCancelled(boolean cancel) {
         cancelled = cancel;
     }
 
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.AndroidFarmEvent.getHandlerList();
     }
 
 }

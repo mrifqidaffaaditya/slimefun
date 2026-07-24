@@ -16,21 +16,14 @@ import io.github.thebusybiscuit.slimefun5.implementation.Slimefun;
  *
  * @author ProfElements
  */
-public class SlimefunItemRegistryFinalizedEvent extends Event {
-    
-    private static final HandlerList handlers = new HandlerList();
+public class SlimefunItemRegistryFinalizedEvent extends io.github.thebusybiscuit.slimefun4.api.events.SlimefunItemRegistryFinalizedEvent {
 
-    public SlimefunItemRegistryFinalizedEvent() {}
+    public SlimefunItemRegistryFinalizedEvent() {
+        super(false);}
 
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList(); 
+        return io.github.thebusybiscuit.slimefun4.api.events.SlimefunItemRegistryFinalizedEvent.getHandlerList();
     }
 }
 

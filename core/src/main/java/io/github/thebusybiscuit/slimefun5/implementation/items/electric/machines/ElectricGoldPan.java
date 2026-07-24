@@ -105,7 +105,7 @@ public class ElectricGoldPan extends AContainer implements RecipeDisplayItem {
                 recipe = new MachineRecipe(Math.max(1, 4 / getSpeed()), new ItemStack[] { item }, new ItemStack[] { output });
             }
 
-            if (output != null && output.getType() != Material.AIR && menu.fits(output, getOutputSlots())) {
+            if (output != null && output.getType() != Material.AIR && fitsOutput(menu, new ItemStack[] { output })) {
                 menu.consumeItem(slot);
                 return recipe;
             }

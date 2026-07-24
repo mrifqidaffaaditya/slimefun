@@ -16,13 +16,10 @@ import io.github.thebusybiscuit.slimefun5.implementation.items.magical.talismans
  * 
  * @author cworldstar
  */
-public class TalismanActivateEvent extends PlayerEvent implements Cancellable {
-
-	private static final HandlerList handlers = new HandlerList();
+public class TalismanActivateEvent extends io.github.thebusybiscuit.slimefun4.api.events.TalismanActivateEvent {
 	private final Talisman talisman;
 	private final ItemStack talismanItemStack;
 	private boolean preventConsumption = false;
-	private boolean cancelled = false;
 
 	/**
 	 * @param player
@@ -81,17 +78,12 @@ public class TalismanActivateEvent extends PlayerEvent implements Cancellable {
 	}
 
 	@Override
-	public void setCancelled(boolean cancel) {
-		this.cancelled = cancel;
-	}
-
-	@Override
 	public @Nonnull HandlerList getHandlers() {
 		return getHandlerList();
 	}
 
 	public static @Nonnull HandlerList getHandlerList() {
-		return handlers;
+        return io.github.thebusybiscuit.slimefun4.api.events.TalismanActivateEvent.getHandlerList();
 	}
 }
 

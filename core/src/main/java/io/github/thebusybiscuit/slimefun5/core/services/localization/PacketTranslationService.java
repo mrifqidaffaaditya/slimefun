@@ -216,9 +216,27 @@ public class PacketTranslationService implements Listener {
         // A player-renamed item keeps its custom name (only its lore is translated); overwriting the name
         // here would undo the rename for every viewer.
         if (!RenamedItems.isRenamed(meta)) {
-            meta.setDisplayName(display.name);
+            // Never downgrade a good display to the raw-id fallback. renderForPacket returns the id as its
+            // "nothing resolved yet" signal (e.g. a packet rendered on the Netty thread mid-boot before
+            // translations loaded). If that happens but the stored item already carries a proper baked
+            // display name, keep it - otherwise the item briefly flashes its vanilla/raw name when moved,
+            // until an interaction re-sends the correct packet. This is the reported "name reverts to
+            // vanilla on move, fixes on click" bug.
+            boolean renderedIsFallback = display.name == null || display.name.equals(id);
+
+            if (!renderedIsFallback) {
+                meta.setDisplayName(display.name);
+            } else if (!meta.hasDisplayName()) {
+                meta.setDisplayName(display.name);
+            }
         }
-        meta.setLore(display.lore.isEmpty() ? null : display.lore);
+        // Same guard for lore: if the render produced nothing usable but the stored item already has lore,
+        // don't wipe it (which would drop the item's stats/description until the next correct packet).
+        if (!display.lore.isEmpty()) {
+            meta.setLore(display.lore);
+        } else if (!meta.hasLore()) {
+            meta.setLore(null);
+        }
         // Vanilla attribute lines (real Attack Damage / Attack Speed) are intentionally left visible so a
         // player can see what a weapon/tool actually does; they render below our composed lore.
         bukkit.setItemMeta(meta);

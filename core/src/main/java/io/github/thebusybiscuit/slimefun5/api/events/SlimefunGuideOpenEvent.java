@@ -18,16 +18,14 @@ import io.github.thebusybiscuit.slimefun5.core.guide.SlimefunGuideMode;
  *
  * @see SlimefunGuideMode
  */
-public class SlimefunGuideOpenEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class SlimefunGuideOpenEvent extends io.github.thebusybiscuit.slimefun4.api.events.SlimefunGuideOpenEvent {
 
     private final Player player;
     private final ItemStack guide;
     private SlimefunGuideMode layout;
-    private boolean cancelled;
 
     public SlimefunGuideOpenEvent(@Nonnull Player p, @Nonnull ItemStack guide, @Nonnull SlimefunGuideMode layout) {
+        super(false);
         Validate.notNull(p, "The Player cannot be null");
         Validate.notNull(guide, "Guide cannot be null");
         Validate.notNull(layout, "Layout cannot be null");
@@ -80,25 +78,9 @@ public class SlimefunGuideOpenEvent extends Event implements Cancellable {
         this.layout = layout;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.SlimefunGuideOpenEvent.getHandlerList();
     }
 
 }

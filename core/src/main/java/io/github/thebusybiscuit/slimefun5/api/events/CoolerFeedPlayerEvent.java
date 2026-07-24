@@ -24,15 +24,12 @@ import io.github.thebusybiscuit.slimefun5.implementation.items.backpacks.Cooler;
  * @see Cooler
  *
  */
-public class CoolerFeedPlayerEvent extends PlayerEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class CoolerFeedPlayerEvent extends io.github.thebusybiscuit.slimefun4.api.events.CoolerFeedPlayerEvent {
 
     private final Cooler cooler;
     private final ItemStack coolerItem;
 
     private ItemStack consumedItem;
-    private boolean cancelled;
 
     @ParametersAreNonnullByDefault
     public CoolerFeedPlayerEvent(Player player, Cooler cooler, ItemStack coolerItem, ItemStack consumedItem) {
@@ -90,25 +87,9 @@ public class CoolerFeedPlayerEvent extends PlayerEvent implements Cancellable {
         this.consumedItem = item;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
     @Nonnull
     public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Nonnull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
+        return io.github.thebusybiscuit.slimefun4.api.events.CoolerFeedPlayerEvent.getHandlerList();
     }
 }
 

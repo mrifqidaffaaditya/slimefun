@@ -126,6 +126,87 @@ class BackpackIdentityTest {
     }
 
     @Test
+    @DisplayName("Two same-material items with different SF ids must NOT vanilla-stack (merge bug)")
+    void differentSlimefunIdsDoNotStack() {
+        ItemStack a = new ItemStack(Material.GOLD_INGOT);
+        ItemStack b = new ItemStack(Material.GOLD_INGOT);
+
+        Slimefun.getItemDataService().setItemData(a, "BLISTERING_INGOT");
+        Slimefun.getItemDataService().setItemData(b, "BLISTERING_INGOT_2");
+
+        Assertions.assertEquals(Optional.of("BLISTERING_INGOT"), Slimefun.getItemDataService().getItemData(a));
+        Assertions.assertEquals(Optional.of("BLISTERING_INGOT_2"), Slimefun.getItemDataService().getItemData(b));
+
+        Assertions.assertFalse(a.isSimilar(b), "Different SF ids stacked together in vanilla inventory");
+    }
+
+    @Test
+    @DisplayName("pushItem must NOT merge two different-id Slimefun items sharing a material")
+    void pushItemDoesNotMergeDifferentIds() {
+        io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem sf =
+            io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem.getById("BLISTERING_INGOT");
+        io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem sf2 =
+            io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem.getById("BLISTERING_INGOT_2");
+        org.junit.jupiter.api.Assumptions.assumeTrue(sf != null && sf2 != null);
+
+        ItemStack existing = sf.getItem().clone();
+        existing.setAmount(1);
+        ItemStack incoming = sf2.getItem().clone();
+        incoming.setAmount(1);
+
+        Assertions.assertFalse(
+            io.github.thebusybiscuit.slimefun5.utils.SlimefunUtils.isItemSimilar(existing, incoming, true, false),
+            "Two different-tier Slimefun items must not be treated as stackable");
+    }
+
+    @Test
+    @DisplayName("A machine output (id-only, no baked name) can recover its display from the template")
+    void machineOutputRecoversBakedDisplay() {
+        io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem sf =
+            io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem.getById("BLISTERING_INGOT");
+        org.junit.jupiter.api.Assumptions.assumeTrue(sf != null);
+
+        // The live template is baked at boot and carries the display name.
+        Assertions.assertTrue(sf.getItem().getItemMeta().hasDisplayName(),
+            "the canonical template must carry a baked display name");
+
+        // Simulate a machine output captured pre-bake: same material + PDC id, but NO display name.
+        ItemStack output = new ItemStack(sf.getItem().getType());
+        Slimefun.getItemDataService().setItemData(output, "BLISTERING_INGOT");
+        Assertions.assertFalse(output.getItemMeta().hasDisplayName());
+
+        // getByItem must resolve the id from PDC, giving us the baked template to restore from.
+        io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem resolved =
+            io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem.getByItem(output);
+        Assertions.assertNotNull(resolved, "machine output must resolve back to its SlimefunItem via PDC");
+        Assertions.assertEquals("BLISTERING_INGOT", resolved.getId());
+        Assertions.assertTrue(resolved.getItem().getItemMeta().hasDisplayName());
+    }
+
+    @Test
+    @DisplayName("A stale pre-bake machine output must stack with a /give item after being healed")
+    void machineOutputStacksWithGiveAfterHeal() {
+        io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem sf =
+            io.github.thebusybiscuit.slimefun5.api.items.SlimefunItem.getById("BLISTERING_INGOT");
+        org.junit.jupiter.api.Assumptions.assumeTrue(sf != null);
+
+        ItemStack give = sf.getItem().clone();
+
+        // Simulate a recipe output captured before canonicalizeToId(): material + PDC id, but no baked
+        // name/lore. This is the state that would NOT stack with a /give item.
+        ItemStack machineRaw = new ItemStack(give.getType());
+        Slimefun.getItemDataService().setItemData(machineRaw, "BLISTERING_INGOT");
+        Assertions.assertFalse(give.isSimilar(machineRaw),
+            "precondition: the stale pre-bake output must differ from a /give item");
+
+        // The heal (as AContainer#refreshOutputDisplay does) rebuilds it from the canonical template.
+        ItemStack healed = sf.getItem().clone();
+        healed.setAmount(machineRaw.getAmount());
+        Assertions.assertTrue(give.isSimilar(healed),
+            "a healed machine output must stack with a /give item");
+    }
+
+    @Test
     @DisplayName("Different identities never compare equal (dupe guard); same/unassigned do")
     void identityDistinguishesBackpacks() {
         ItemStack a = backpack();

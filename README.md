@@ -1,9 +1,9 @@
-# Slimefun5
+# slimefun
 
-[![Build Status](https://Slimefun5.github.io/builds/Slimefun5/Slimefun5/stable/badge.svg)](https://Slimefun5.github.io/builds/Slimefun5/Slimefun5/stable)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/Slimefun5/Slimefun5/total)
-[![GitHub Followers](https://img.shields.io/github/followers/Slimefun5?style=social)](https://github.com/Slimefun5)
-[![GitHub Stars](https://img.shields.io/github/stars/Slimefun5/Slimefun5?style=social)](https://github.com/Slimefun5/Slimefun5)
+[![Build Status](https://Slimefun5.github.io/builds/mrifqidaffaaditya/slimefun/stable/badge.svg)](https://Slimefun5.github.io/builds/mrifqidaffaaditya/slimefun/stable)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/mrifqidaffaaditya/slimefun/total)
+[![GitHub Followers](https://img.shields.io/github/followers/mrifqidaffaaditya?style=social)](https://github.com/mrifqidaffaaditya)
+[![GitHub Stars](https://img.shields.io/github/stars/mrifqidaffaaditya/slimefun?style=social)](https://github.com/mrifqidaffaaditya/slimefun)
 [![bStats](https://bStats.org/signatures/bukkit/Slimefun%205.svg)](https://bStats.org/plugin/bukkit/Slimefun%205/31272)
 
 Slimefun is a Paper plugin that simulates a modpack-like atmosphere by adding over 500 new items and recipes to your Minecraft Server.
@@ -47,13 +47,13 @@ plugins {
 }
 
 dependencies {
-    "githubCompileOnly"("Slimefun5:Slimefun5:v5.3.2")
+    "githubCompileOnly"("mrifqidaffaaditya:slimefun:v1.0.0")
 }
 ```
 
 ## Wiki
 
-[Read more on the Slimefun Wiki...](https://github.com/Slimefun5/Wiki/wiki/Slimefun5)
+[Read more on the Slimefun Wiki...](https://github.com/Slimefun5/Wiki/wiki/slimefun)
 
 ## Discord
 
